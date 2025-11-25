@@ -1,0 +1,87 @@
+#  DAKOTA INPUT FILE 
+#  Simple input file for optimising a tokamak geometry
+#  Single-objective optimisation for either q95 or beta as objective functions
+#  by adjusting the plasma current
+
+#######################################################
+# Specifies general Dakota settings
+#######################################################
+
+environment
+
+# This determines where the data from each iteration will be collated
+	tabular_data
+	  tabular_data_file = 'CurrentOptimisationResultsBeta.dat'
+	# tabular_data_file = 'SafetyOptimisationResultsBeta.dat'
+
+	  
+#######################################################
+# Specifies the iterative method Dakota uses
+#######################################################
+
+method
+	coliny_ea
+	max_iterations = 40
+	max_function_evaluations = 40
+	population_size = 5
+	fitness_type merit_function
+	mutation_type offset_normal
+	mutation_rate 0.5
+	crossover_type two_point
+	crossover_rate 0.5
+	replacement_type chc = 10
+
+
+#######################################################
+# Specifies the connection between variables, interface and responses
+#######################################################
+
+# models
+# In this example, with a single set of variables, a single interface, and a single set
+# of responses, models is not needed
+
+#######################################################
+# Number, type and characteristics of variable parameters
+#######################################################
+
+variables
+
+# continuous design variables can take any real number between the bounds
+
+      continuous_design = 1
+	  cdv_lower_bounds     100000		
+	  cdv_upper_bounds     1000000		
+	  cdv_descriptor       'current'	
+
+#######################################################
+# Determines how variables will be transformed into responses via simulation code
+#######################################################
+
+interface
+
+# fork can invoke simulations external to Dakota
+	fork
+	  analysis_driver = 'script_current.sh'
+	  parameters_file = 'params.in'
+	  results_file    = 'results.out'
+
+      file_save
+
+	  work_directory named 'workdir'
+          directory_tag directory_save
+          link_files = 'wrappercurrent.py'
+ 	  deactivate active_set_vector
+
+	failure_capture
+		recover 100	   
+
+#######################################################
+# Specify the type of information which will return to Dakota
+#######################################################
+
+responses
+
+	num_objective_functions = 1
+	#objective_scaling       -1.0   -1.0   # flip both signs
+	no_gradients
+	no_hessians
